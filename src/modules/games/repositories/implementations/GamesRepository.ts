@@ -28,8 +28,17 @@ export class GamesRepository implements IGamesRepository {
   }
 
   async findUsersByGameId(id: string): Promise<User[]> {
-    return this.repository
-      .createQueryBuilder()
-      // Complete usando query builder
+    const game = await this.repository
+      .createQueryBuilder('game') // Complete usando query builder
+      .innerJoin('users_games_games', 'users_games', 'users_games.gamesId = game.id')
+      .innerJoinAndMapMany('game.users', 'users', 'users', 'users.id = users_games.usersId')
+      .where('game.id = :id', { id })
+      .getOne();
+
+    if (!game) {
+      throw new Error('Game not found');
+    }
+
+    return game.users;
   }
 }
